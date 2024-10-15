@@ -19,7 +19,7 @@ export function PokemonCard ({ style, id, name }: Props) {
                 width={72} 
                 height={72} 
             />
-            <ThemedText>{name}</ThemedText>
+            <ThemedText>{name.charAt(0).toUpperCase() + name.slice(1)}</ThemedText>
     </Card>
 }
 
