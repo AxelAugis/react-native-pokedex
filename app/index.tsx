@@ -2,6 +2,7 @@ import { Card } from "@/components/Card";
 import { PokemonCard } from "@/components/pokemon/PokemonCard";
 import { Row } from "@/components/Row";
 import { SearchBar } from "@/components/SearchBar";
+import { SortButton } from "@/components/SortButton";
 import { ThemedText } from "@/components/ThemedText";
 import { getPokemonId } from "@/functions/pokemon";
 import { useFetchQuery, useInfiniteFetchQuery } from "@/hooks/useFetchQuery";
@@ -22,8 +23,11 @@ export default function Index() {
 
   const {data, isFetching, fetchNextPage} = useInfiniteFetchQuery('/pokemon?limit=21')
   const [search, setSearch] = useState('');
-  const pokemons = data?.pages.flatMap(page => page.results) ?? []
-  const filteredPokemons = search ? pokemons.filter(pokemon => pokemon.name.includes(search.toLowerCase()) || getPokemonId(pokemon.url).toString() === search) : pokemons
+  const [sortKey, setSortKey] = useState<'id' | 'name'>('id')
+  const pokemons = data?.pages.flatMap(page => page.results.map(result =>({name: result.name, id: getPokemonId(result.url)}))) ?? []
+  const filteredPokemons = [...(search 
+    ? pokemons.filter(pokemon => pokemon.name.includes(search.toLowerCase()) || pokemon.id.toString() === search) 
+    : pokemons)].sort((a, b) => a[sortKey] < b[sortKey] ? -1 : 1)
 
   return (
     <SafeAreaView
@@ -33,8 +37,9 @@ export default function Index() {
         <Image source={require('@/assets/images/pokeball.png')} width={24} height={24} />
         <ThemedText variant="headline" color="grayLight">Pokedex</ThemedText>
       </Row>
-      <Row gap={12}>
+      <Row gap={16} style={styles.form}>
         <SearchBar value={search} onChange={setSearch} />
+        <SortButton value={sortKey} onChange={setSortKey} />
       </Row>
       <Card style={styles.body}>
         <FlatList 
@@ -47,11 +52,11 @@ export default function Index() {
           onEndReached={search ? undefined : () => fetchNextPage()}
           contentContainerStyle={styles.gridGap}
           renderItem={({item}) => (
-            <PokemonCard id={getPokemonId(item.url)} name={item.name} style={{flex: 1/3}}>
+            <PokemonCard id={item.id} name={item.name} style={{flex: 1/3}}>
              
             </PokemonCard>
           )} 
-          keyExtractor={item => item.url}
+          keyExtractor={item => item.id.toString()}
         />
       </Card>
     </SafeAreaView>
@@ -65,7 +70,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingBottom: 8,
   },
   body: {
     flex: 1,
@@ -76,5 +81,8 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 8,
+  },
+  form: {
+    paddingHorizontal: 12,
   }
 })
