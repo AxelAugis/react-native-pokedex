@@ -3,6 +3,7 @@ import { ThemedText } from "../ThemedText"
 import { Card } from "../Card"
 import { useThemeColors } from "@/hooks/useThemeColors"
 import { Link } from "expo-router"
+import { getPokemonArtwork } from "@/functions/pokemon"
 
 type Props = {
     style: ViewStyle,
@@ -18,11 +19,11 @@ export function PokemonCard ({ style, id, name }: Props) {
                     <View style={[styles.shadow, {backgroundColor: colors.grayBackground}]} />
                     <ThemedText style={styles.id} variant="caption" color="grayMedium">#{id.toString().padStart(3, '0')}</ThemedText>
                     <Image 
-                        source={{uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`}} 
+                        source={{uri: getPokemonArtwork(id)}} 
                         width={72} 
                         height={72} 
                     />
-                    <ThemedText>{name.charAt(0).toUpperCase() + name.slice(1)}</ThemedText>
+                    <ThemedText style={{textTransform: 'capitalize'}}>{name}</ThemedText>
                 </Card>
             </Pressable>
     </Link>
