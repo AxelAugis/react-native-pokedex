@@ -1,11 +1,12 @@
 import { Card } from "@/components/Card";
 import { PokemonSpec } from "@/components/pokemon/PokemonSpec";
+import { PokemonStat } from "@/components/pokemon/PokemonStat";
 import { PokemonType } from "@/components/pokemon/PokemonType";
 import { RootView } from "@/components/RootView";
 import { Row } from "@/components/Row";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { formatWeight, getPokemonArtwork } from "@/functions/pokemon";
+import { formatSize, formatWeight, getPokemonArtwork } from "@/functions/pokemon";
 import { useFetchQuery } from "@/hooks/useFetchQuery";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { router, useLocalSearchParams } from "expo-router";
@@ -59,7 +60,7 @@ export default function Pokemon({}) {
                         <PokemonSpec
                         style={{borderStyle: 'solid', borderRightWidth: 1, borderColor: colors.grayLight}} title={formatWeight(pokemon?.weight)} description="Weight" image={require('@/assets/images/weight.png')} />
                         <PokemonSpec
-                        style={{borderStyle: 'solid', borderRightWidth: 1, borderColor: colors.grayLight}} title={formatWeight(pokemon?.height)} description="Size" image={require('@/assets/images/height.png')} />
+                        style={{borderStyle: 'solid', borderRightWidth: 1, borderColor: colors.grayLight}} title={formatSize(pokemon?.height)} description="Size" image={require('@/assets/images/height.png')} />
                         <PokemonSpec 
                             title={pokemon?.moves
                             .slice(0, 2)
@@ -69,6 +70,14 @@ export default function Pokemon({}) {
                     </Row>
                     <ThemedText>{bio}</ThemedText>
                     <ThemedText variant="subtitle1" style={{ color: colorType }}>Base stats</ThemedText>
+                    <View style={{alignSelf: 'stretch'}}>
+                        <PokemonStat color={colorType} name="HP" value={45} />
+                        <PokemonStat color={colorType} name="HP" value={45} />
+                        <PokemonStat color={colorType} name="HP" value={45} />
+                        <PokemonStat color={colorType} name="HP" value={45} />
+                        <PokemonStat color={colorType} name="HP" value={45} />
+
+                    </View>
                 </Card>
             </View>
            

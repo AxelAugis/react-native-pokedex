@@ -13,7 +13,7 @@ export function formatWeight(weight?: number): string {
     return (weight / 10).toString().replace('.', ',') + " kg";
 }
 
-export function fromatSize(size?: number): string {
+export function formatSize(size?: number): string {
     if(!size) {
         return "";
     }
