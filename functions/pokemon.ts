@@ -5,3 +5,17 @@ export function getPokemonId(url: string) : number {
 export function getPokemonArtwork (id: number | string): string {
     return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
 }
+
+export function formatWeight(weight?: number): string {
+    if(!weight) {
+        return "";
+    }
+    return (weight / 10).toString().replace('.', ',') + " kg";
+}
+
+export function fromatSize(size?: number): string {
+    if(!size) {
+        return "";
+    }
+    return (size / 10).toString().replace('.', ',') + " m";
+}

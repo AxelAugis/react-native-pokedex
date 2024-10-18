@@ -1,9 +1,11 @@
 import { Card } from "@/components/Card";
+import { PokemonSpec } from "@/components/pokemon/PokemonSpec";
+import { PokemonType } from "@/components/pokemon/PokemonType";
 import { RootView } from "@/components/RootView";
 import { Row } from "@/components/Row";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { getPokemonArtwork } from "@/functions/pokemon";
+import { formatWeight, getPokemonArtwork } from "@/functions/pokemon";
 import { useFetchQuery } from "@/hooks/useFetchQuery";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { router, useLocalSearchParams } from "expo-router";
@@ -14,9 +16,14 @@ export default function Pokemon({}) {
 
     const colors = useThemeColors();
     const params = useLocalSearchParams() as {id: string}
-    const { data:pokemon } = useFetchQuery("/pokemon/[id]", {id: params.id})
+    const { data: pokemon } = useFetchQuery("/pokemon/[id]", {id: params.id})
+    const { data: species } = useFetchQuery("/pokemon-species/[id]", {id: params.id})
     const mainType = pokemon?.types?.[0]?.type?.name;
     const colorType = mainType ? Colors.type[mainType] : colors.tint;
+    const types = pokemon?.types ?? [];
+    const bio = species?.flavor_text_entries
+        ?.find(({ language }) => language.name === 'en')
+        ?.flavor_text.replaceAll("\n", ". ");
 
     return (
         <RootView style={{backgroundColor: colorType}}>
@@ -42,7 +49,26 @@ export default function Pokemon({}) {
                     height={200} 
                 />
                 <Card style={styles.card}>
-                    <ThemedText>Bonjour les gens</ThemedText>
+                    <Row gap={16}>
+                        {
+                            types.map((type) => (<PokemonType key={type.type.name} name={type.type.name} />
+                        ))}
+                    </Row>
+                    <ThemedText variant="subtitle1" style={{ color: colorType }}>About</ThemedText>
+                    <Row gap={16}>
+                        <PokemonSpec
+                        style={{borderStyle: 'solid', borderRightWidth: 1, borderColor: colors.grayLight}} title={formatWeight(pokemon?.weight)} description="Weight" image={require('@/assets/images/weight.png')} />
+                        <PokemonSpec
+                        style={{borderStyle: 'solid', borderRightWidth: 1, borderColor: colors.grayLight}} title={formatWeight(pokemon?.height)} description="Size" image={require('@/assets/images/height.png')} />
+                        <PokemonSpec 
+                            title={pokemon?.moves
+                            .slice(0, 2)
+                            .map(m => m.move.name)
+                            .join("\n")} 
+                            description="Moves"  />
+                    </Row>
+                    <ThemedText>{bio}</ThemedText>
+                    <ThemedText variant="subtitle1" style={{ color: colorType }}>Base stats</ThemedText>
                 </Card>
             </View>
            
@@ -74,5 +100,7 @@ const styles = StyleSheet.create({
     card: {
         paddingHorizontal: 20,
         paddingTop: 60,
+        alignItems: 'center',
+        gap: 16,
     }
 })
