@@ -6,7 +6,7 @@ import { RootView } from "@/components/RootView";
 import { Row } from "@/components/Row";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
-import { formatSize, formatWeight, getPokemonArtwork } from "@/functions/pokemon";
+import { basePokemonStats, formatSize, formatWeight, getPokemonArtwork } from "@/functions/pokemon";
 import { useFetchQuery } from "@/hooks/useFetchQuery";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { router, useLocalSearchParams } from "expo-router";
@@ -22,12 +22,13 @@ export default function Pokemon({}) {
     const mainType = pokemon?.types?.[0]?.type?.name;
     const colorType = mainType ? Colors.type[mainType] : colors.tint;
     const types = pokemon?.types ?? [];
+    const stats = pokemon?.stats ?? basePokemonStats;
     const bio = species?.flavor_text_entries
         ?.find(({ language }) => language.name === 'en')
-        ?.flavor_text.replaceAll("\n", ". ");
+        ?.flavor_text.replaceAll("\n", "");
 
     return (
-        <RootView style={{backgroundColor: colorType}}>
+        <RootView backgroundColor={colorType}>
             <View>
                 <Image style={styles.pokeball} source={require('@/assets/images/big_pokeball.png')} width={208} height={208} />
             </View>
@@ -50,7 +51,7 @@ export default function Pokemon({}) {
                     height={200} 
                 />
                 <Card style={styles.card}>
-                    <Row gap={16}>
+                    <Row gap={16} style={{height: 20}}>
                         {
                             types.map((type) => (<PokemonType key={type.type.name} name={type.type.name} />
                         ))}
@@ -71,12 +72,16 @@ export default function Pokemon({}) {
                     <ThemedText>{bio}</ThemedText>
                     <ThemedText variant="subtitle1" style={{ color: colorType }}>Base stats</ThemedText>
                     <View style={{alignSelf: 'stretch'}}>
-                        <PokemonStat color={colorType} name="HP" value={45} />
-                        <PokemonStat color={colorType} name="HP" value={45} />
-                        <PokemonStat color={colorType} name="HP" value={45} />
-                        <PokemonStat color={colorType} name="HP" value={45} />
-                        <PokemonStat color={colorType} name="HP" value={45} />
-
+                        {
+                            stats.map(stat => (
+                                <PokemonStat 
+                                    key={stat.stat.name} 
+                                    name={stat.stat.name} 
+                                    value={stat.base_stat} 
+                                    color={colorType} 
+                                />
+                            ))
+                        }
                     </View>
                 </Card>
             </View>
@@ -109,6 +114,7 @@ const styles = StyleSheet.create({
     card: {
         paddingHorizontal: 20,
         paddingTop: 60,
+        paddingBottom: 20,
         alignItems: 'center',
         gap: 16,
     }
