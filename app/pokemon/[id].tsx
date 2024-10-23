@@ -10,6 +10,7 @@ import { basePokemonStats, formatSize, formatWeight, getPokemonArtwork } from "@
 import { useFetchQuery } from "@/hooks/useFetchQuery";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { router, useLocalSearchParams } from "expo-router";
+import { Audio } from "expo-av";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 
@@ -19,6 +20,7 @@ export default function Pokemon({}) {
     const params = useLocalSearchParams() as {id: string}
     const { data: pokemon } = useFetchQuery("/pokemon/[id]", {id: params.id})
     const { data: species } = useFetchQuery("/pokemon-species/[id]", {id: params.id})
+    const id = parseInt(params.id, 10);
     const mainType = pokemon?.types?.[0]?.type?.name;
     const colorType = mainType ? Colors.type[mainType] : colors.tint;
     const types = pokemon?.types ?? [];
@@ -26,6 +28,46 @@ export default function Pokemon({}) {
     const bio = species?.flavor_text_entries
         ?.find(({ language }) => language.name === 'en')
         ?.flavor_text.replaceAll("\n", "");
+
+        const enableAudio = async () => {
+            await Audio.setAudioModeAsync({
+                playsInSilentModeIOS: true,
+                staysActiveInBackground: false,
+                shouldDuckAndroid: false,
+            });
+        };
+        
+        const onImagePress = async () => {
+            const cry = pokemon?.cries.latest;
+            if (!cry) {
+                return;
+            } else {
+                try {
+                    await enableAudio();
+                    const { sound } = await Audio.Sound.createAsync(
+                        {
+                            uri: cry,
+                        },
+                        { shouldPlay: true }
+                    );
+                    await sound.playAsync();
+                } catch (error) {
+                    console.error("Erreur lors de la lecture du fichier audio:", error);
+                    alert("Le format du fichier audio n'est pas supporté sur iOS.");
+                }
+            }
+        };
+
+        const onPrevious = () => {
+            router.replace({pathname: '/pokemon/[id]', params: {id: Math.max(id - 1, 1)} })
+        }
+
+        const onNext = () => {
+            router.replace({pathname: '/pokemon/[id]', params: {id: Math.min(id + 1, 151)} })
+        }
+
+        const isFirst = id === 1;
+        const isLast = id === 151;
 
     return (
         <RootView backgroundColor={colorType}>
@@ -41,16 +83,32 @@ export default function Pokemon({}) {
                 </Pressable>
                 <ThemedText color="grayWhite" variant="subtitle2">#{params.id.padStart(3, '0')}</ThemedText>
             </Row>
-            <View style={styles.body}>
-                <Image 
-                    style={styles.artwork}
-                    source={{
-                        uri: getPokemonArtwork(params.id)
-                    }} 
-                    width={200} 
-                    height={200} 
-                />
-                <Card style={styles.card}>
+                <Card style={[styles.card, { overflow: "visible" }]}>
+                    <Row style={styles.imageRow} gap={16}>
+                        {
+                            isFirst ? <View style={{ width: 24, height: 24 }}></View> : 
+                                <Pressable onPress={onPrevious}>
+                                <Image width={24} height={24} source={require('@/assets/images/prev.png')} />
+                            </Pressable>
+                        }
+                    <Pressable onPress={onImagePress}>
+                            <Image 
+                                style={styles.artwork}
+                                source={{
+                                    uri: getPokemonArtwork(params.id)
+                                }} 
+                                width={200} 
+                                height={200} 
+                            />
+                    </Pressable>
+                    {
+                        isLast ? <View style={{ width: 24, height: 24 }}></View> :
+
+                        <Pressable onPress={onNext}>
+                            <Image width={24} height={24} source={require('@/assets/images/next.png')} />
+                        </Pressable>
+                    }
+                    </Row>
                     <Row gap={16} style={{height: 20}}>
                         {
                             types.map((type) => (<PokemonType key={type.type.name} name={type.type.name} />
@@ -84,7 +142,6 @@ export default function Pokemon({}) {
                         }
                     </View>
                 </Card>
-            </View>
            
         </RootView>
     )
@@ -102,16 +159,20 @@ const styles = StyleSheet.create({
         right: 8,
         zIndex: -1
     },
-    artwork: {
+    imageRow: {
         position: 'absolute',
         top: -140,
         zIndex: 2,
-        alignSelf: 'center',
+        justifyContent: 'space-between',
+        left: 0,
+        right: 0,
+        paddingHorizontal: 20
     },
-    body: {
-        marginTop: 144,
+    artwork: {
+
     },
     card: {
+        marginTop: 144,
         paddingHorizontal: 20,
         paddingTop: 60,
         paddingBottom: 20,
